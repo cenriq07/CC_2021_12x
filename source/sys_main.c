@@ -74,25 +74,22 @@ void vMicroSD(void *pvParameters);
 int main(void)
 {
 /* USER CODE BEGIN (3) */
-    /** - Initialize LIN/SCI2 Routines to receive Command and transmit data */
     gioInit();
     sciInit();
     hetInit();
     // spiInit();  // this happens in the fatfs port
 
-    UARTprintf("Hercules SDCARD Demo\r\n ");
-    UARTprintf("Type \'help\' for help.\r\n");
-    UARTprintf("Catalog MCU, qjwang@ti.com \r\n");
-
-    /* Initialize RTI driver */
+    /* ------------- SR Reader ------------- */
+    /** - Initialize LIN/SCI2 Routines to receive Command and transmit data */
+    gioToggleBit(gioPORTA, 0U);
+    mmcSelectSpi(spiPORT1, spiREG1);        // SD en SPI1
+    gioSetBit(gioPORTB, 1, 0);              //Indica escritura
+    SD_Test();                              //Inicialización
 
     gioToggleBit(gioPORTA, 0U);
-    mmcSelectSpi(spiPORT1, spiREG1);  // SD en SPI1
-
-    gioSetBit(gioPORTB, 1, 0);        //Indica escritura
-
-    SD_Test();                       //Inicialización
-
+        sdReadMemory("PRUEBA_6.TXT");
+    gioToggleBit(gioPORTA, 0U);
+    /* ---------------- Tasks ----------------*/
     xTaskCreate(vMicroSD, "SD", 512, NULL, 1, NULL);
 
     vTaskStartScheduler();
@@ -100,8 +97,6 @@ int main(void)
     while(1);
 
 /* USER CODE END */
-
-    return 0;
 }
 
 
@@ -128,6 +123,7 @@ void vMicroSD(void *pvParameters)
             gioSetBit(gioPORTB, 1, 0);
         }
 
+        vTaskDelay(2000/portTICK_RATE_MS);
     }
 }
 

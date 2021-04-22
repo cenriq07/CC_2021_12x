@@ -520,9 +520,12 @@ Cmd_pwd(int argc, char *argv[])
 // the console.
 //
 //*****************************************************************************
+
 int
-Cmd_cat(int argc, char *argv[])
+Cmd_cat(char argv[])
 {
+    gioToggleBit(gioPORTA, 0U);
+
     FRESULT iFResult;
     unsigned int ui32BytesRead;
 
@@ -532,7 +535,7 @@ Cmd_cat(int argc, char *argv[])
     // buffer that will be used to hold the file name.  The file name must be
     // fully specified, with path, to FatFs.
     //
-    if(strlen(g_pcCwdBuf) + strlen(argv[1]) + 1 + 1 > sizeof(g_pcTmpBuf))
+    if(strlen(g_pcCwdBuf) + strlen(argv) + 1 + 1 > sizeof(g_pcTmpBuf))
     {
         UARTprintf("Resulting path name is too long\n");
         return(0);
@@ -554,7 +557,7 @@ Cmd_cat(int argc, char *argv[])
     //
     // Now finally, append the file name to result in a fully specified file.
     //
-    strcat(g_pcTmpBuf, argv[1]);
+    strcat(g_pcTmpBuf, argv);
 
     //
     // Open the file for reading.
@@ -604,12 +607,105 @@ Cmd_cat(int argc, char *argv[])
         UARTprintf("%s", g_pcTmpBuf);
     }
     while(ui32BytesRead == sizeof(g_pcTmpBuf) - 1);
-
     //
     // Return success.
     //
+    gioToggleBit(gioPORTA, 0U);
+
     return(0);
 }
+
+
+//int
+//Cmd_cat(int argc, char *argv[])
+//{
+//    FRESULT iFResult;
+//    unsigned int ui32BytesRead;
+//
+//    //
+//    // First, check to make sure that the current path (CWD), plus the file
+//    // name, plus a separator and trailing null, will all fit in the temporary
+//    // buffer that will be used to hold the file name.  The file name must be
+//    // fully specified, with path, to FatFs.
+//    //
+//    if(strlen(g_pcCwdBuf) + strlen(argv[1]) + 1 + 1 > sizeof(g_pcTmpBuf))
+//    {
+//        UARTprintf("Resulting path name is too long\n");
+//        return(0);
+//    }
+//
+//    //
+//    // Copy the current path to the temporary buffer so it can be manipulated.
+//    //
+//    strcpy(g_pcTmpBuf, g_pcCwdBuf);
+//
+//    //
+//    // If not already at the root level, then append a separator.
+//    //
+//    if(strcmp("/", g_pcCwdBuf))
+//    {
+//        strcat(g_pcTmpBuf, "/");
+//    }
+//
+//    //
+//    // Now finally, append the file name to result in a fully specified file.
+//    //
+//    strcat(g_pcTmpBuf, argv[1]);
+//
+//    //
+//    // Open the file for reading.
+//    //
+//    iFResult = f_open(&g_sFileObject, g_pcTmpBuf, FA_READ);
+//
+//    //
+//    // If there was some problem opening the file, then return an error.
+//    //
+//    if(iFResult != FR_OK)
+//    {
+//        return((int)iFResult);
+//    }
+//
+//    //
+//    // Enter a loop to repeatedly read data from the file and display it, until
+//    // the end of the file is reached.
+//    //
+//    do
+//    {
+//        //
+//        // Read a block of data from the file.  Read as much as can fit in the
+//        // temporary buffer, including a space for the trailing null.
+//        //
+//        iFResult = f_read(&g_sFileObject, g_pcTmpBuf, sizeof(g_pcTmpBuf) - 1,
+//                          (UINT *)&ui32BytesRead);
+//
+//        //
+//        // If there was an error reading, then print a newline and return the
+//        // error to the user.
+//        //
+//        if(iFResult != FR_OK)
+//        {
+//            UARTprintf("\n");
+//            return((int)iFResult);
+//        }
+//
+//        //
+//        // Null terminate the last block that was read to make it a null
+//        // terminated string that can be used with printf.
+//        //
+//        g_pcTmpBuf[ui32BytesRead] = 0;
+//
+//        //
+//        // Print the last chunk of the file that was received.
+//        //
+//        UARTprintf("%s", g_pcTmpBuf);
+//    }
+//    while(ui32BytesRead == sizeof(g_pcTmpBuf) - 1);
+//
+//    //
+//    // Return success.
+//    //
+//    return(0);
+//}
 
 int
 Cmd_append(int argc, char *argv[])
@@ -893,4 +989,93 @@ SD_Test(void)
     }
 }
 
+int
+sdReadMemory(char argv[])
+{
+    FRESULT iFResult;
+    unsigned int ui32BytesRead;
 
+    //
+    // First, check to make sure that the current path (CWD), plus the file
+    // name, plus a separator and trailing null, will all fit in the temporary
+    // buffer that will be used to hold the file name.  The file name must be
+    // fully specified, with path, to FatFs.
+    //
+    if(strlen(g_pcCwdBuf) + strlen(argv) + 1 + 1 > sizeof(g_pcTmpBuf))
+    {
+        UARTprintf("Resulting path name is too long\n");
+        return(0);
+    }
+
+    //
+    // Copy the current path to the temporary buffer so it can be manipulated.
+    //
+    strcpy(g_pcTmpBuf, g_pcCwdBuf);
+
+    //
+    // If not already at the root level, then append a separator.
+    //
+    if(strcmp("/", g_pcCwdBuf))
+    {
+        strcat(g_pcTmpBuf, "/");
+    }
+
+    //
+    // Now finally, append the file name to result in a fully specified file.
+    //
+    strcat(g_pcTmpBuf, argv);
+
+    //
+    // Open the file for reading.
+    //
+    iFResult = f_open(&g_sFileObject, g_pcTmpBuf, FA_READ);
+
+    //
+    // If there was some problem opening the file, then return an error.
+    //
+    if(iFResult != FR_OK)
+    {
+        return((int)iFResult);
+    }
+
+    //
+    // Enter a loop to repeatedly read data from the file and display it, until
+    // the end of the file is reached.
+    //
+    do
+    {
+        //
+        // Read a block of data from the file.  Read as much as can fit in the
+        // temporary buffer, including a space for the trailing null.
+        //
+        iFResult = f_read(&g_sFileObject, g_pcTmpBuf, sizeof(g_pcTmpBuf) - 1,
+                          (UINT *)&ui32BytesRead);
+
+        //
+        // If there was an error reading, then print a newline and return the
+        // error to the user.
+        //
+        if(iFResult != FR_OK)
+        {
+            UARTprintf("\n");
+            return((int)iFResult);
+        }
+
+        //
+        // Null terminate the last block that was read to make it a null
+        // terminated string that can be used with printf.
+        //
+        g_pcTmpBuf[ui32BytesRead] = 0;
+
+        //
+        // Print the last chunk of the file that was received.
+        //
+        UARTprintf("%s", g_pcTmpBuf);
+    }
+    while(ui32BytesRead == sizeof(g_pcTmpBuf) - 1);
+
+    //
+    // Return success.
+    //
+    return(0);
+}

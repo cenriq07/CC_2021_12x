@@ -21,6 +21,12 @@
 FIL filew; //file txt
 FRESULT iFResult;
 
+#define PATH_BUF_SIZE           80
+
+static FIL g_sFileObject;
+static char g_pcTmpBuf[PATH_BUF_SIZE];
+static char g_pcCwdBuf[PATH_BUF_SIZE] = "/";
+
 char Data_acel[100];
 int res;
 

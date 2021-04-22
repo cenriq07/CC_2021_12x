@@ -9,33 +9,35 @@
 
 int sdWriteMemory(char* path, char* data)
 {
-
     gioToggleBit(gioPORTA, 0U);
 
     iFResult = open_append(&filew, TEST_FILENAME);
 
-    if (iFResult != FR_OK) {
+    if (iFResult != FR_OK)
+    {
         /* Error. Cannot create the file */
         UARTprintf("Error opening file\n");
         //return 0;
-    }else{
+    }
+    else
+    {
         UARTprintf("Writing ");
         res = f_printf(&filew, data);
 
-        if (res <0) {
+        if (res <0)
+        {
            /* Error. Cannot write header */
            UARTprintf("Cannot write\n");
            //return 0;
-        }else{
+        }
+        else
+        {
            res = f_close(&filew); // If you don't do this the file might not save
-           if (res != FR_OK){
-              /* Error. Cannot close the file */
-               //return 0;
-           }else{
-               //return 1;
-           }
+           if (res != FR_OK){   /* Error. Cannot close the file */  /*return 0;*/}
+           else {   /*return 1;*/ }
         }
     }
 
     gioToggleBit(gioPORTA, 0U);
 }
+
