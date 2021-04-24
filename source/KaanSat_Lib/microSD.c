@@ -7,11 +7,11 @@
 
 #include "KaanSat_Lib/microSD.h"
 
-int sdWriteMemory(char* path, char* data)
+int sdWriteMemory(const char* path, char* data)
 {
     gioToggleBit(gioPORTA, 0U);
 
-    iFResult = open_append(&filew, TEST_FILENAME);
+    iFResult = open_append(&filew, path);
 
     if (iFResult != FR_OK)
     {

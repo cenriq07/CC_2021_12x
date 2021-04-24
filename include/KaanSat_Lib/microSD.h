@@ -16,7 +16,8 @@
 #include "het.h"
 #include "math.h"
 
-#define TEST_FILENAME    "PRUEBA_8.TXT"
+#define DATA_FILENAME   "FSW_DATA.TXT"
+#define STATE_FILENAME  "FSW_STE.TXT"
 
 FIL filew; //file txt
 FRESULT iFResult;
@@ -28,8 +29,9 @@ static char g_pcTmpBuf[PATH_BUF_SIZE];
 static char g_pcCwdBuf[PATH_BUF_SIZE] = "/";
 
 char Data_acel[100];
+char F_STATE[10];
 int res;
 
-int sdWriteMemory(char* path, char* data);
+int sdWriteMemory(const char* path, char* data);
 
 #endif /* INCLUDE_KAANSAT_LIB_MICROSD_H_ */
