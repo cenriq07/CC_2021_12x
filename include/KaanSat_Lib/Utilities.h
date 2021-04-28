@@ -46,11 +46,11 @@
 #define LONG_SP_PARAM   4
 #define TEAM_NUMBER     "1714"
 
-#define spiREGCS        spiREG4
+#define spiREG_BMP      spiREG1
 
 #define P0              101325      //   Pa
 #define Rair            8.31432     //   N.m/(mol.K)
-#define ug              0.2841408   //   Producto u*g donde u = 0.0289644 kg/mol; g = 9.81 m/s^2
+#define ug              0.2841408   //   Producto u*g ; [u = 0.0289644 kg/mol]*[g = 9.81 m/s^2]
 #define T               25          //   °C ; TODO: Agregar sensor de temperatura
 
 #define PWM_PAYLOAD     pwm0
@@ -91,6 +91,7 @@ extern char command[COMM_SIZE];
 extern char tramaAPI[COMM_SIZE];
 extern uint32 buff_size;
 extern uint32 buff_sizeAPI;
+extern char FSW_STATE_TEMP;
 
 extern char CMD_KEY[LONG_CMD_KEY];
 

@@ -30,6 +30,7 @@
 #include "diskio.h"
 #include "cmdline.h"
 #include "sd_defs.h"
+#include "KaanSat_Lib/Utilities.h"
 
 
 //*****************************************************************************
@@ -1071,6 +1072,7 @@ sdReadMemory(char argv[])
         // Print the last chunk of the file that was received.
         //
         UARTprintf("%s", g_pcTmpBuf);
+        FSW_STATE_TEMP = g_pcTmpBuf[0];
     }
     while(ui32BytesRead == sizeof(g_pcTmpBuf) - 1);
 

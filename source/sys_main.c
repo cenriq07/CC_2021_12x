@@ -54,6 +54,7 @@
 #include "KaanSat_Lib/Commands.h"
 #include "KaanSat_Lib/PWM.h"
 #include "KaanSat_Lib/microSD.h"
+#include "lin.h"
 /* USER CODE END */
 
 /* Include Files */
@@ -79,6 +80,7 @@ int i = 0;
 void rtiNotification(uint32 notification);
 void sciNotification(sciBASE_t *sci, unsigned flags);
 void vMicroSD(void *pvParameters);
+#define MICROSD
 /* USER CODE END */
 
 int main(void)
@@ -103,18 +105,40 @@ int main(void)
     gioSetBit(gioPORTB, 1, 0);              //Indica escritura
     SD_Test();                              //Inicialización
 
-    sprintf(F_STATE, "1");
-    sdWriteMemory(STATE_FILENAME, F_STATE);
+//    sprintf(F_STATE, "1");
+//    sdWriteMemory(STATE_FILENAME, F_STATE);
 
     gioToggleBit(gioPORTA, 0U);
         sdReadMemory(STATE_FILENAME);
     gioToggleBit(gioPORTA, 0U);
+    __delay_cycles(106);
+
+    switch(FSW_STATE_TEMP)
+    {
+        case '0':
+            STATE = PRELAUNCH;
+            break;
+        case '1':
+            STATE = LAUNCH;
+            break;
+        case '2':
+            STATE = DEPLOYMENT;
+            break;
+            STATE = SP1_RELEASE;
+        case '3':
+            STATE = SP2_RELEASE;
+            break;
+        case '4':
+            STATE = LANDING;
+            break;
+    }
+
     /* ------------------- TASKS -------------------*/
-    xTaskCreate(vMicroSD, "SD", 512, NULL, 1, NULL);
+    //xTaskCreate(vMicroSD, "SD", 512, NULL, 1, NULL);
 #endif
     xTaskCreate(vMissionOperations,"Sat Ops",configMINIMAL_STACK_SIZE, NULL, 1, &xWTStartHandle);
     xTaskCreate(vSensors,"Sensores",configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-    xTaskCreate(vTelemetry,"T. Container",1024, NULL, 1, &xTelemetryHandle);
+    xTaskCreate(vTelemetry,"T. Container",512, NULL, 1, &xTelemetryHandle);
     xTaskCreate(vWaitToStart,"W.To S.",configMINIMAL_STACK_SIZE, NULL, 1, &xWTStartHandle);
 
     vTaskSuspend(xTelemetryHandle);
@@ -133,6 +157,7 @@ void vWaitToStart(void *pvParameters)
 {
     portTickType xWaitTime;
     xWaitTime = xTaskGetTickCount();
+    STATE = PRELAUNCH;
 
     while(1)
     {
@@ -166,6 +191,7 @@ void vTelemetry(void *pvParameters)
 
         createTelemetryPacket();
         sciSendData(buff_sizeAPI, tramaAPI, 0);
+        sdWriteMemory(DATA_FILENAME, command);
 
         PACKET_COUNT++;
         SP1_PC++;
@@ -183,7 +209,6 @@ void vSensors(void *pvParameters)
     while(1)
     {
         ALTITUDE_BAR = getAltitude(PRESS_BAR);
-
         vTaskDelayUntil(&xSensorsTime, T_SENSORS);
     }
 }
@@ -273,4 +298,5 @@ void sciNotification(sciBASE_t *sci, unsigned flags )
     sciReceive(scilinREG, 1, (unsigned char *)&receivedData);
     getCommand(receivedData[0]);
 }
+
 /* USER CODE END */

@@ -29,6 +29,27 @@ SDCard/sd_card.obj: ../SDCard/diskio.h
 SDCard/sd_card.obj: ../SDCard/integer.h
 SDCard/sd_card.obj: ../SDCard/cmdline.h
 SDCard/sd_card.obj: ../SDCard/sd_defs.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/KaanSat_Lib/Utilities.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/FreeRTOS.h
+SDCard/sd_card.obj: C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/stddef.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/FreeRTOSConfig.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_projdefs.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_portable.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_portmacro.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_mpu_wrappers.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_task.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_list.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/sys_core.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/het.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/reg_het.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/adc.h
+SDCard/sd_card.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/reg_adc.h
+SDCard/sd_card.obj: C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/stdio.h
+SDCard/sd_card.obj: C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/stdlib.h
+SDCard/sd_card.obj: C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/math.h
+SDCard/sd_card.obj: C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/_defs.h
+SDCard/sd_card.obj: C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/machine/_limits.h
+SDCard/sd_card.obj: C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/strings.h
 
 ../SDCard/sd_card.c: 
 C:/Users/ADMIN/workspace_v9/CC_2021_12x/fatfs/src/ff.h: 
@@ -59,3 +80,24 @@ C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/reg_sci.h:
 ../SDCard/integer.h: 
 ../SDCard/cmdline.h: 
 ../SDCard/sd_defs.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/KaanSat_Lib/Utilities.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/FreeRTOS.h: 
+C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/stddef.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/FreeRTOSConfig.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_projdefs.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_portable.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_portmacro.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_mpu_wrappers.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_task.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/os_list.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/sys_core.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/het.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/reg_het.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/adc.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/reg_adc.h: 
+C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/stdio.h: 
+C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/stdlib.h: 
+C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/math.h: 
+C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/_defs.h: 
+C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/machine/_limits.h: 
+C:/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/strings.h: 

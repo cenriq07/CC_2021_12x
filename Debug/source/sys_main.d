@@ -52,6 +52,8 @@ source/sys_main.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/KaanSat_Lib
 source/sys_main.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/spi.h
 source/sys_main.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/reg_spi.h
 source/sys_main.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/SDCard/uartstdio.h
+source/sys_main.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/lin.h
+source/sys_main.obj: C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/reg_lin.h
 
 ../source/sys_main.c: 
 C:/Users/ADMIN/workspace_v9/CC_2021_12x/fatfs/src/ff.h: 
@@ -105,3 +107,5 @@ C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/KaanSat_Lib/microSD.h:
 C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/spi.h: 
 C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/reg_spi.h: 
 C:/Users/ADMIN/workspace_v9/CC_2021_12x/SDCard/uartstdio.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/lin.h: 
+C:/Users/ADMIN/workspace_v9/CC_2021_12x/include/reg_lin.h: 
