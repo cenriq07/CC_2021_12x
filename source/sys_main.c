@@ -63,7 +63,7 @@
 
 /* USER CODE BEGIN (1) */
 
-static char receivedData[20];
+static char receivedData[22];
 int i = 0;
 //#define MICROSD     TRUE
 /* USER CODE END */
@@ -80,7 +80,6 @@ int i = 0;
 void rtiNotification(uint32 notification);
 void sciNotification(sciBASE_t *sci, unsigned flags);
 void vMicroSD(void *pvParameters);
-#define MICROSD
 /* USER CODE END */
 
 int main(void)
@@ -97,8 +96,7 @@ int main(void)
      _enable_interrupt_();
      sciReceive(scilinREG, 1, ( unsigned char *)receivedData);
 
-#ifdef MICROSD
-     /* ------------------- SD READER -------------------*/
+    /* ------------------- SD READER -------------------*/
     /** - Initialize LIN/SCI2 Routines to receive Command and transmit data */
     gioToggleBit(gioPORTA, 0U);
     mmcSelectSpi(spiPORT1, spiREG1);
@@ -108,40 +106,45 @@ int main(void)
 //    sprintf(F_STATE, "1");
 //    sdWriteMemory(STATE_FILENAME, F_STATE);
 
-    gioToggleBit(gioPORTA, 0U);
-        sdReadMemory(STATE_FILENAME);
-    gioToggleBit(gioPORTA, 0U);
+    sdReadFile(STATE_FILENAME);
+
+    __delay_cycles(106);
     __delay_cycles(106);
 
-    switch(FSW_STATE_TEMP)
-    {
-        case '0':
-            STATE = PRELAUNCH;
-            break;
-        case '1':
-            STATE = LAUNCH;
-            break;
-        case '2':
-            STATE = DEPLOYMENT;
-            break;
-            STATE = SP1_RELEASE;
-        case '3':
-            STATE = SP2_RELEASE;
-            break;
-        case '4':
-            STATE = LANDING;
-            break;
-    }
-
     /* ------------------- TASKS -------------------*/
-    //xTaskCreate(vMicroSD, "SD", 512, NULL, 1, NULL);
-#endif
     xTaskCreate(vMissionOperations,"Sat Ops",configMINIMAL_STACK_SIZE, NULL, 1, &xWTStartHandle);
     xTaskCreate(vSensors,"Sensores",configMINIMAL_STACK_SIZE, NULL, 1, NULL);
     xTaskCreate(vTelemetry,"T. Container",512, NULL, 1, &xTelemetryHandle);
     xTaskCreate(vWaitToStart,"W.To S.",configMINIMAL_STACK_SIZE, NULL, 1, &xWTStartHandle);
 
-    vTaskSuspend(xTelemetryHandle);
+    switch(FSW_STATE_TEMP)
+    {
+        case '0':
+            STATE = PRELAUNCH;
+            vTaskSuspend(xTelemetryHandle);
+            break;
+        case '1':
+            STATE = LAUNCH;
+            telemetry_ON = true;
+            break;
+        case '2':
+            STATE = DEPLOYMENT;
+            telemetry_ON = true;
+            break;
+        case '3':
+            STATE = SP1_RELEASE;
+            telemetry_ON = true;
+            break;
+        case '4':
+            STATE = SP2_RELEASE;
+            telemetry_ON = true;
+            break;
+        case '5':
+            STATE = LANDING;
+            telemetry_ON = true;
+            break;
+    }
+
     vTaskStartScheduler();
     while(1);
 
@@ -157,7 +160,6 @@ void vWaitToStart(void *pvParameters)
 {
     portTickType xWaitTime;
     xWaitTime = xTaskGetTickCount();
-    STATE = PRELAUNCH;
 
     while(1)
     {
@@ -177,7 +179,6 @@ void vTelemetry(void *pvParameters)
 {
     portTickType xTelemetryTime;
     xTelemetryTime = xTaskGetTickCount();
-    STATE = LAUNCH;
 
     while(1)
     {
@@ -189,6 +190,7 @@ void vTelemetry(void *pvParameters)
             __delay_cycles(106);
         }
 
+        getTime();
         createTelemetryPacket();
         sciSendData(buff_sizeAPI, tramaAPI, 0);
         sdWriteMemory(DATA_FILENAME, command);
@@ -226,14 +228,6 @@ void vMissionOperations(void *pvParameters)
     uint8 land = 0;
     float ALTITUDE_STATES[4] = {1798.0, 1750.0, 1700.0, 1660.0};
 
-//    for(i=0 ; i<10; i++)
-//    {
-//        ALTITUDE_INIT = ALTITUDE_INIT + PRESS_BAR;
-//        vTaskDelayUntil(&xOpsTime, T_TELEMETRY);
-//    }
-//
-//    ALTITUDE_INIT = getAltitude(ALTITUDE_INIT/10);
-
     i = 0;
     while(1)
     {
@@ -254,44 +248,23 @@ void vMissionOperations(void *pvParameters)
             land = 1;
             i++;
             STATE = i+1;
+//            sdRemoveFile(STATE_FILENAME);
+//            sdCreateFile(STATE_FILENAME);
+//            sdWriteMemory(STATE_FILENAME, getState(STATE));
         }
         if(land == 1 && (ALTITUDE_BAR <= ALTITUDE_STATES[i]))
         {
             i++;
             STATE = i+1;
+//            sdRemoveFile(STATE_FILENAME);
+//            sdCreateFile(STATE_FILENAME);
+//            sdWriteMemory(STATE_FILENAME, getState(STATE));
         }
         pwmSetSignal10e3(hetRAM1, PWM_PAYLOAD, SERVO_PAYLOAD);
         vTaskDelayUntil(&xOpsTime, T_OPERATIONS);
     }
 }
-/*---------------------------------- MICRO SD ------------------------------*/
-#ifdef MICROSD
-void vMicroSD(void *pvParameters)
-{
-    int escritura = 0;
-    while(1){
-        if(!gioGetBit(gioPORTB, 2))
-        {
-            if(escritura == 0){
-                escritura = 1;
-            }else{
-                escritura = 0;
-            }
-        }
-        UARTprintf("Pase RTI \r\n");
-        sprintf(Data_acel, "M: A: R:\r\n");
 
-        if(escritura){
-            gioSetBit(gioPORTB, 1, 1);
-            sdWriteMemory(DATA_FILENAME, Data_acel);
-        }else{
-            gioSetBit(gioPORTB, 1, 0);
-        }
-
-        vTaskDelay(2000/portTICK_RATE_MS);
-    }
-}
-#endif
 /*---------------------------------- SCI NOTIFICATION ------------------------------*/
 void sciNotification(sciBASE_t *sci, unsigned flags )
 {

@@ -42,7 +42,7 @@
 #define T_TELEMETRY     1000/portTICK_RATE_MS
 #define T_SENSORS       1000/portTICK_RATE_MS
 #define T_OPERATIONS    2000/portTICK_RATE_MS
-#define LONG_CMD_KEY    15
+#define LONG_CMD_KEY    23
 #define LONG_SP_PARAM   4
 #define TEAM_NUMBER     "1714"
 
@@ -155,11 +155,20 @@ extern char SP2_ROTATION_RATE[LONG_SP_PARAM];
 /*---------------- COMMAND VARIABLES ----------------*/
 extern bool telemetry_ON;
 extern bool SP_ON;
+extern int ENABLE_SIM;
+extern int H, M, S;
+extern char cH[3], cM[3], cS[3];
+extern bool SP1X_ON;
+extern bool SP2X_ON;
+extern bool R1;
+extern bool R2;
 /* ------------------ FUNCTIONS --------------------*/
 
 void createTelemetryPacket();
 bool sciSendData(uint32 numOfDat, char* charDat, bool CR);
 
+void getTime();
+char* getState(int state);
 float getAltitude(float P);
 
 static void reverse(char *s, size_t s_len);

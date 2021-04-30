@@ -890,6 +890,7 @@ SD_Test(void)
 	int nStatus;
     FRESULT iFResult;
 
+
     //
     // Mount the file system, using logical disk 0.
     //
@@ -906,7 +907,6 @@ SD_Test(void)
 
     // write some info
     FIL fsrc;                /* File objects */
-
 
       /* Open  the file for append */
       res = open_append(&fsrc, TEST_FILENAME);
@@ -990,9 +990,10 @@ SD_Test(void)
     }
 }
 
-int
-sdReadMemory(char argv[])
+int sdReadFile(char argv[])
 {
+    gioToggleBit(gioPORTA, 0U);
+
     FRESULT iFResult;
     unsigned int ui32BytesRead;
 
@@ -1058,7 +1059,7 @@ sdReadMemory(char argv[])
         //
         if(iFResult != FR_OK)
         {
-            UARTprintf("\n");
+            //UARTprintf("\n");
             return((int)iFResult);
         }
 
@@ -1071,13 +1072,85 @@ sdReadMemory(char argv[])
         //
         // Print the last chunk of the file that was received.
         //
-        UARTprintf("%s", g_pcTmpBuf);
-        FSW_STATE_TEMP = g_pcTmpBuf[0];
+        //UARTprintf("%s", g_pcTmpBuf);
+        FSW_STATE_TEMP = g_pcTmpBuf[0];     // Save FSW State
     }
     while(ui32BytesRead == sizeof(g_pcTmpBuf) - 1);
 
+    gioToggleBit(gioPORTA, 0U);
     //
     // Return success.
     //
     return(0);
+}
+
+int sdRemoveFile(char argv[])
+{
+    gioToggleBit(gioPORTA, 0U);
+
+    FRESULT iFResult;
+    unsigned int ui32BytesRead;
+
+    //
+    // First, check to make sure that the current path (CWD), plus the file
+    // name, plus a separator and trailing null, will all fit in the temporary
+    // buffer that will be used to hold the file name.  The file name must be
+    // fully specified, with path, to FatFs.
+    //
+    if(strlen(g_pcCwdBuf) + strlen(argv) + 1 + 1 > sizeof(g_pcTmpBuf))
+    {
+        UARTprintf("Resulting path name is too long\n");
+        return(0);
+    }
+
+    //
+    // Copy the current path to the temporary buffer so it can be manipulated.
+    //
+    strcpy(g_pcTmpBuf, g_pcCwdBuf);
+
+    //
+    // If not already at the root level, then append a separator.
+    //
+    if(strcmp("/", g_pcCwdBuf))
+    {
+        strcat(g_pcTmpBuf, "/");
+    }
+
+    //
+    // Now finally, append the file name to result in a fully specified file.
+    //
+    strcat(g_pcTmpBuf, argv);
+
+    iFResult = f_unlink(g_pcTmpBuf);        // Delete file in root directory
+
+    gioToggleBit(gioPORTA, 0U);
+
+    return(0);
+}
+
+int sdCreateFile(char argv[])
+{
+    gioToggleBit(gioPORTA, 0U);
+
+    FRESULT res;                /* FatFs function common result code */
+
+    FIL fsrc;                /* File objects */
+      /* Open  the file for append */
+      res = open_append(&fsrc, argv);
+      if (res != FR_OK) {
+          /* Error. Cannot create the file */
+          while(1);
+      }
+
+      /* Close the file */
+      res = f_close(&fsrc);
+
+      gioToggleBit(gioPORTA, 0U);
+
+      if (res != FR_OK)
+      {
+        /* Error. Cannot close the file */
+        while(1);
+      }
+      return(0);
 }

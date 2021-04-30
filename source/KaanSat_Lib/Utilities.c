@@ -94,14 +94,46 @@ char SP2_ROTATION_RATE[LONG_SP_PARAM] = "X";
 /*---------------- COMMAND VARIABLES ----------------*/
 bool telemetry_ON = false;
 bool SP_ON = 0;
+int ENABLE_SIM=0;
+int H=0, M=0, S=0;
+char cH[3]="hhx", cM[3]="mmx", cS[3]="ssx";
+bool SP1X_ON = false;
+bool SP2X_ON = false;
+bool R1 = false;
+bool R2 = false;
 /* ------------ TELEMETRY FORMAT -------------------*/
 //static const char* FORMAT = "1714,%s,C,%c,%c,%c,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s;1714,";
-static const char* FORMAT = "%s,%s,%s,%s,%s,%s,%s,%s,%s;";
+static const char* FORMAT = "%s:%s:%s,%s,%s,%s,%s,%s,%s,%s,%s,%s;";
 
 /* ------------------ FUNCTIONS --------------------*/
 void createTelemetryPacket()
 {
+    char zeroH[2] = "0";
+    char zeroM[2] = "0";
+    char zeroS[2] = "0";
+
     ftoa(PACKET_COUNT, cPACKET_COUNT, 0);
+
+    ftoa(H, cH, 0);
+    ftoa(M, cM, 0);
+    ftoa(S, cS, 0);
+
+    if(H<10)
+    {
+        strcat(zeroH, cH);
+        strcpy(cH,zeroH);
+    }
+    if(M<10)
+    {
+        strcat(zeroM, cM);
+        strcpy(cM,zeroM);
+    }
+    if(S<10)
+    {
+        strcat(zeroS, cS);
+        strcpy(cS,zeroS);
+    }
+
     ftoa(SP1_PC, cSP1_PC, 0);
     ftoa(SP2_PC, cSP2_PC, 0);
 
@@ -115,14 +147,14 @@ void createTelemetryPacket()
 
     buff_size = sprintf(command,
                         FORMAT,                     /* <TELEMETRY_FORMAT> */
-                        /* <MISSION_TIME> */
+                        cH,cM,cS,/* <MISSION_TIME> */
                         cPACKET_COUNT,              /* <PACKET_COUNT> */
                         /* <PACKET_TYPE> */
                         //MODE,                       /* <MODE> */
                         //SP1_RELEASED,               /* <SP1_RELEASED> */
                         //SP2_RELEASED,               /* <SP2_RELEASED> */
                         cALTITUDE_BAR,              /* <ALTITUD> */
-                        cTEMPERATURE,               /* <TEMP> */
+                        //cTEMPERATURE,               /* <TEMP> */
                         /* <VOLTAGE> */
                         /* <GPS_TME> */
                         /* <GPS_LATITUDE> */
@@ -160,28 +192,78 @@ void createTelemetryPacket()
     Sum = 0x10 + (DH>>24) + ((DH>>16) & 0xFF) + ((DH>>8) & 0xFF) + (DH & 0xFF) + (DL_ET>>24) + ((DL_ET>>16) & 0xFF) + ((DL_ET>>8) & 0xFF) + (DL_ET & 0xFF) + 0xFF + 0xFE + preSum;
     checksum = (0xFF - (Sum & 0xFF));
 
-                                    //1 2 3 4 5 6 7 8 9 A B C D E F 1 2 3 4
-    buff_sizeAPI = sprintf(tramaAPI,"%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%s%c",
-                           0x7E,                    //1 Start Delimiter
-                           0x00,                    //2 Length
-                           longAPI,                 //3 Length
-                           0x10,                    //4 Frame type
-                           0x00,                    //5 Frame ID
-                           DH>>24,                  //6 Dest. Adress
-                           (DH>>16) & 0xFF,         //7 Dest. Adress
-                           (DH>>8) & 0xFF,          //8 Dest. Adress
-                           DH & 0xFF,               //9 Dest. Adress
-                           DL_ET>>24,               //A Dest. Adress
-                           (DL_ET>>16) & 0xFF,      //B Dest. Adress
-                           (DL_ET>>8) & 0xFF,       //C Dest. Adress
-                           DL_ET & 0xFF,            //D Dest. Adress
-                           0xFF,                    //E Reserved
-                           0xFE,                    //F Reserved
-                           0x00,                    //1 Broadcast radio
-                           0x00,                    //2 Cmd. Options
-                           command,                 //3 Telemetry
-                           checksum);               //4 Checksum
+    buff_sizeAPI = sprintf(tramaAPI,"%s",command);
 
+//                                    //1 2 3 4 5 6 7 8 9 A B C D E F 1 2 3 4
+//    buff_sizeAPI = sprintf(tramaAPI,"%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%s%c",
+//                           0x7E,                    //1 Start Delimiter
+//                           0x00,                    //2 Length
+//                           longAPI,                 //3 Length
+//                           0x10,                    //4 Frame type
+//                           0x00,                    //5 Frame ID
+//                           DH>>24,                  //6 Dest. Adress
+//                           (DH>>16) & 0xFF,         //7 Dest. Adress
+//                           (DH>>8) & 0xFF,          //8 Dest. Adress
+//                           DH & 0xFF,               //9 Dest. Adress
+//                           DL_ET>>24,               //A Dest. Adress
+//                           (DL_ET>>16) & 0xFF,      //B Dest. Adress
+//                           (DL_ET>>8) & 0xFF,       //C Dest. Adress
+//                           DL_ET & 0xFF,            //D Dest. Adress
+//                           0xFF,                    //E Reserved
+//                           0xFE,                    //F Reserved
+//                           0x00,                    //1 Broadcast radio
+//                           0x00,                    //2 Cmd. Options
+//                           command,                 //3 Telemetry
+//                           checksum);               //4 Checksum
+
+}
+
+void getTime()
+{
+    if(S<60)
+        S++;
+
+    if(S==60)
+    {
+        S = 0;
+        if(M<60)
+            M++;
+
+        if(M == 60)
+        {
+            M = 0;
+            if(H<24)
+                H++;
+
+            if(H == 24)
+                H = 0;
+        }
+    }
+}
+
+char* getState(int state)
+{
+    switch(state)
+    {
+        case PRELAUNCH:
+            return "0";
+            break;
+        case LAUNCH:
+            return "1";
+            break;
+        case DEPLOYMENT:
+            return "2";
+            break;
+        case SP1_RELEASE:
+            return "3";
+            break;
+        case SP2_RELEASE:
+            return "4";
+            break;
+        case LANDING:
+            return "5";
+            break;
+    }
 }
 
 float getAltitude(float P)

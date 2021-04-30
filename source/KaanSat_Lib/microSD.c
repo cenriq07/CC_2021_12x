@@ -16,18 +16,18 @@ int sdWriteMemory(const char* path, char* data)
     if (iFResult != FR_OK)
     {
         /* Error. Cannot create the file */
-        UARTprintf("Error opening file\n");
+        //UARTprintf("Error opening file\n");
         //return 0;
     }
     else
     {
-        UARTprintf("Writing ");
+        //UARTprintf("Writing ");
         res = f_printf(&filew, data);
 
         if (res <0)
         {
            /* Error. Cannot write header */
-           UARTprintf("Cannot write\n");
+           //UARTprintf("Cannot write\n");
            //return 0;
         }
         else

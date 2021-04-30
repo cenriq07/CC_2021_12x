@@ -10,14 +10,18 @@
 #include "KaanSat_Lib/Utilities.h"
 #include "sys_core.h"
 
-char *commands[] = {"CX", "ST", "SIM", "SP1X", "SP2X", "SIMP"};
+
+char *commands[] = {"CX", "ST", "SIM", "SP1X", "SP2X", "SIMP", "SPR"};
 int commandsTam = sizeof (commands)/sizeof (char*);
 
 int sim_ok = 0;
 int cmd_cont = 0;
+int VALIDA_ENTRADA=0;
 
-int getCommand(char cmd_char)
+
+void getCommand(char cmd_char)
 {
+
     if(cmd_char != ';')
     {
         CMD_KEY[cmd_cont] = cmd_char;
@@ -26,16 +30,19 @@ int getCommand(char cmd_char)
     else
     {
         cmd_cont = 0;
-        //sciSendData(sprintf(command, CMD_KEY), command, 0);
         if(CMD_KEY[0] == '+' || CMD_KEY[0] == '-')
         {
             getSPTelemetry(CMD_KEY);
         }
         else
         {
-            findCommand(CMD_KEY);
+            validate(CMD_KEY);
         }
         memset(CMD_KEY, 0, sizeof(CMD_KEY));                   // Clean the array CMD_KEY to be used again
+        memset(receivedData, 0, sizeof(receivedData));
+        memset(receivedData2, 0, sizeof(receivedData2));
+        memset(receivedData3, 0, sizeof(receivedData3));
+        memset(auxReceivedData, 0, sizeof(auxReceivedData));
     }
 }
 
@@ -78,58 +85,208 @@ void getSPTelemetry(char *telemetry)
             break;
     }
 }
+void validate(char *comm){
 
-int findCommand(char *comm)
-{
-    int i, select = -1;                         // select: Selection variable for entered command.
-    char *token = strtok(comm,",");             // strtok Extracs the data separated by commas y los almacena cada que es llamada
-    char *values[] = {"A","B","C","D"};        // Almacena CMD,No. Equipo,Comando,Parámetro respectivamente.
+    int validData = 0, commandselect, tokens;
+    int noTokens;
 
-    for(i=0; i<4; i++)
-    {
-        values[i] = token;                      // Almacena cada uno de los valores que están separados por comas
-        token = strtok(NULL, ",;");
-    }
-    if(!strcmp(values[0],"CMD") && !strcmp(values[1],TEAM_NUMBER))
-    {
-        for(i = 0; i<commandsTam; i++)
-        {
-            if(!strcmp(values[2], commands[i]))
-            {
-                select = i;
-                break;
+    char *commandValue[]={"A"};
+    int large=0;
+
+    strcpy(receivedData,comm);
+    strcpy(receivedData2,comm);
+
+    strcpy(auxReceivedData,receivedData);
+    tokens = numberOfTokens(auxReceivedData,",");
+    newData=strtok(receivedData,",");
+
+    if(tokens !=4){validData=1;}
+
+    if(validData == 0){
+
+        validData=strcmp(newData,"CMD");
+        if(validData == 0){
+
+            Recorrido(1);
+            validData=strcmp(newData,"1714");
+            Recorrido(2);
+            if(validData == 0){
+
+               commandselect = commVerification(newData,3);
+               Recorrido(3);
+               commandValue[0]=newData;
+
+                switch (commandselect){
+                    case 1:
+                    {
+                        if((strcmp(newData,"ON") == 0) || (strcmp(newData,"OFF") == 0)){ commCX(&commandValue[0]); }
+                        break;
+                    }
+                    case 2:
+                    {
+                        strcpy(newDataCopy,newData);
+                        noTokens = numberOfTokens(newDataCopy,":");
+                        if(noTokens == 3){
+
+                            strcpy(newDataCopy,newData);
+
+                            auxNewData = strtok(newData,":");
+                            validData = timeVerification("24",auxNewData,0);//horas
+
+                            if(validData == 0){//minutos
+                                RecorridoAuxNewData(1);
+                                validData = timeVerification("60",auxNewData,0);
+
+                                if(validData == 0 ){//segundos
+                                    RecorridoAuxNewData(2);
+                                    validData = timeVerification("60",auxNewData,1);
+
+                                    if(validData == 0){
+                                        commST(&commandValue[0]);
+                                    }
+                                }
+                            }
+                        }
+                        //else{validData = 1;}
+                        break;
+                    }
+                    case 3:
+                    {
+                        if((strcmp(newData,"ENABLE") == 0) || (strcmp(newData,"DISABLE") == 0) || (strcmp(newData,"ACTIVATE") == 0))
+                        { commSIM(&commandValue[0]); }
+                    }
+                    case 4:
+                    {
+                        if((strcmp(newData,"ON") == 0) || (strcmp(newData,"OFF") == 0)) { commSP1X(&commandValue[0]); }
+                        break;
+                    }
+                    case 5:
+                        {
+                            if((strcmp(newData,"ON") == 0) || (strcmp(newData,"OFF") == 0)) { commSP2X(&commandValue[0]); }
+                        break;
+                    }
+                    case 6:
+                    {
+                        large = strlen(newData);
+                        int i=0;
+                            for ( i=0; i < strlen(newData)-1; i++)
+                            {
+                                if((48>newData[i] && 1<=newData[i] ) || (newData[i]>57 && 255>=newData[i])){ validData = 1;}
+                                else{validData = 0;}
+                            }
+                            if( validData == 0){ commSIMP(&commandValue[0]);}
+
+                        break;
+                    }
+                    case 7:
+                    {
+                        if((strcmp(newData,"R1") == 0) || (strcmp(newData,"R2") == 0)) { commSPR(&commandValue[0]); }
+                        break;
+                    }
+                    case 12:
+                    {
+                        break;
+                    }
+                }
             }
         }
-        if(select != -1)
-        {
-            switch(select)
-            {
-                case CX:
-                    commCX(&values[3]);
-                    break;
-                case ST:
-                    commST(&values[3]);
-                    break;
-                case SIM:
-                    commSIM(&values[3]);
-                    break;
-                case SP1X:
-                    commSP1X(&values[3]);
-                    break;
-                case SP2X:
-                    commSP2X(&values[3]);
-                    break;
-                case SIMP:
-                    commSIMP(&values[3]);
-                    break;
-            }
-            return 1;
-        }
-        else
-            return 0;
     }
-    else
-        return 0;
+}
+
+int numberOfTokens(char * ptr,const char *delimit){
+    char *newToken = strtok(ptr,delimit);
+    int count = 0;
+
+    while(newToken != NULL){
+        newToken=strtok(NULL,delimit);
+        count++;
+    }
+    return count;
+}
+
+int commVerification(char *newData,int x){
+
+    char noWithCero1[]="00,01,02,03,04,05,06,07,08,09";
+    char noWithCero2[]="00;,01;,02;,03;,04;,05;,06;,07;,08;,09;";
+    char commandsselect[] = "CX,ST,SIM,SP1X,SP2X,SIMP,SPR";
+    char *newCaracter;
+    int validData, count = 0, found = 1;
+
+    if(x == 0){
+        newCaracter = strtok(noWithCero1,",");
+    }
+    if(x == 1){
+        newCaracter = strtok(noWithCero2,",");
+    }
+    if(x == 3){
+        newCaracter = strtok(commandsselect,",");
+
+    }
+
+    while(found!=0 && newCaracter!=NULL){
+        validData = strcmp(newData,newCaracter);
+        if(validData == 0){
+            found = 0;
+        }
+        newCaracter = strtok(NULL,",");
+        count++;
+    }
+
+    if(found == 1){
+         count = 12;
+     }
+
+    return count;
+}
+void Recorrido(int x){
+    int i=0;
+    strcpy(receivedData,receivedData2);
+    newData = strtok(receivedData,",");
+    for( i=0;i<x;i++){
+        newData = strtok(NULL,",");
+    }
+}
+int timeVerification(char *x, char *auxNewData, int time){
+
+    int compData=0, validData=0;
+
+    compData = strlen(auxNewData);
+    if(compData>2 && time == 0 ){ validData = 1;}
+    if(compData>3 && time == 1) {validData = 1;}
+
+    if(validData == 0){
+        compData = atoi(auxNewData);
+
+        if(compData <10){//si es menor a 10
+            validData = commVerification(auxNewData,time);
+            if(validData == 12){validData = 1;}
+            else{validData = 0;}
+            //printf("menor a 10");
+        }
+        else{//x=24 o x=60
+//            if(time == 1){
+//                if(auxNewData[2] != ';'){ validData = 1;}
+//            }
+            if(validData == 0){
+                //  printf("\nHOLA");
+                compData = strcmp(auxNewData,x);
+                if(compData < 0){ validData = 0; }
+                else{validData = 1;}
+
+            }
+        }
+    }
+
+    return validData;
+
+}
+void RecorridoAuxNewData(int x){
+    int i=0;
+    strcpy(newData,newDataCopy);
+    auxNewData = strtok(newData,":");
+    for( i=0;i<x;i++){
+        auxNewData = strtok(NULL,":");
+    }
 }
 
 void commCX(char *value[])
@@ -152,59 +309,75 @@ void commST(char *value[])
     int i;
     char *time[3];
     char *token = strtok(*value,":");
-    for(i=0; i<3; i++)
-    {
-        time[i] = token;
-        token = strtok(NULL, ":;");
-    }
-    // TODO: Time updated to %s:%s:%s"
+
+    H =(token[0]-48)*10+(token[1]-48);
+    M =(token[3]-48)*10+(token[4]-48);
+    S =(token[6]-48)*10+(token[7]-48);
+
+//    for(i=0; i<3; i++)
+//    {
+//        time[i] = token;
+//        token = strtok(NULL, ":;");
+//    }
 }
+
 void commSIM(char *value[])
 {
-    if(!strcmp(*value,"ENABLE"))
+    if(sim_ok == 0 && (!strcmp(*value,"ENABLE")))
     {
-        //TODO: "SIMULATION ENABLED         "
+        sim_ok = 1;
+    }
+    else if(sim_ok == 1 && (!strcmp(*value,"DISABLE")))
+    {
+        sim_ok = 0;
+    }
+    else if(sim_ok == 1 && (!strcmp(*value,"ACTIVATE")))
+    {
         sim_ok = 1;
     }
 
-    else if(!strcmp(*value,"DISABLE"))
-    {
-        //TODO: "SIMULATION DISABLED"
-        sim_ok = 0;
-    }
-
-    else if(sim_ok == 1 && !strcmp(*value,"ACTIVATE"))
-    {
-        // TODO: "SIMULATION ACTIVATED"
-    }
-    else
-    {
-        // TODO: "SIMULATION IS NOT ENABLED"
-    }
 }
 void commSP1X(char *value[])
 {
     if(!strcmp(*value,"ON"))
     {
-        // TODO: "SCIENCE PAYLOAD 1 ON"}
+        SP1X_ON = true;
     }
     if(!strcmp(*value,"OFF"))
     {
-        // TODO: "SCIENCE PAYLOAD 1 OFF"
+        SP1X_ON = false;
     }
 }
 void commSP2X(char *value[])
 {
     if(!strcmp(*value,"ON"))
     {
-        // TODO: "SCIENCE PAYLOAD 2 ON"
+        SP2X_ON = true;
     }
     if(!strcmp(*value,"OFF"))
     {
-        // TODO: "SCIENCE PAYLOAD 2 OFF"
+        SP2X_ON = false;
     }
 }
+
 void commSIMP(char *value[])
 {
     PRESS_BAR = atof(*value);
+}
+
+void commSPR(char *value[]){
+
+    int angles[3] = {SPOS_ZERO, SPOS_SP1, SPOS_SP2};
+
+    if(!strcmp(*value,"R1"))
+    {
+        R1 = true;
+        SERVO_PAYLOAD.duty = angles[1];
+    }
+
+    if(!strcmp(*value,"R2"))
+    {
+        R2 = true;
+        SERVO_PAYLOAD.duty = angles[2];
+    }
 }
