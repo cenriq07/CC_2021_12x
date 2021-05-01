@@ -306,7 +306,7 @@ void commCX(char *value[])
 
 void commST(char *value[])
 {
-    int i;
+//    int i;
     char *time[3];
     char *token = strtok(*value,":");
 

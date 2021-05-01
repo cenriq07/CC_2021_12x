@@ -54,6 +54,7 @@
 #include "KaanSat_Lib/Commands.h"
 #include "KaanSat_Lib/PWM.h"
 #include "KaanSat_Lib/microSD.h"
+#include "KaanSat_Lib/BMP280.h"
 #include "lin.h"
 /* USER CODE END */
 
@@ -99,12 +100,9 @@ int main(void)
     /* ------------------- SD READER -------------------*/
     /** - Initialize LIN/SCI2 Routines to receive Command and transmit data */
     gioToggleBit(gioPORTA, 0U);
-    mmcSelectSpi(spiPORT1, spiREG1);
-    gioSetBit(gioPORTB, 1, 0);              //Indica escritura
-    SD_Test();                              //Inicialización
-
-//    sprintf(F_STATE, "1");
-//    sdWriteMemory(STATE_FILENAME, F_STATE);
+    mmcSelectSpi(spiPORT_SD , spiREG_SD);
+    gioSetBit(gioPORTB, 1, 0);
+    SD_Test();
 
     sdReadFile(STATE_FILENAME);
 
@@ -210,7 +208,23 @@ void vSensors(void *pvParameters)
 
     while(1)
     {
-        ALTITUDE_BAR = getAltitude(PRESS_BAR);
+        /* ----------------| BMP280 |------------------- */
+
+        ComandoSPI[0]=((0x7F & 0xF4)<<8)|0x00AB;
+        spiSendAndGetData(spiREG_BMP, &SPI1_data_configCh2,(uint32) 1, ComandoSPI,DatoSPI01);
+        hacernada(500000);
+
+        ComandoSPI[0]=((0x7F & 0xF5)<<8)|0x0014;
+        spiSendAndGetData(spiREG_BMP, &SPI1_data_configCh2,(uint32) 1, ComandoSPI,DatoSPI01);
+        hacernada(100000);
+
+        CAlibracion_BMP280(spiREG_BMP,SPI1_data_configCh2);
+        LEERTempYpresRAW_bmp280(spiREG_BMP, SPI1_data_configCh2, 100, Pres_bmp280, Temp_bmp280,Alt_bmp280);
+
+        PRESS_BAR = Pres_bmp280[1];
+        TEMPERATURE = Temp_bmp280[1];
+
+        ALTITUDE_BAR = getAltitude(PRESS_BAR,TEMPERATURE);
         vTaskDelayUntil(&xSensorsTime, T_SENSORS);
     }
 }

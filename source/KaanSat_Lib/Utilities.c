@@ -118,6 +118,9 @@ void createTelemetryPacket()
     ftoa(M, cM, 0);
     ftoa(S, cS, 0);
 
+    ftoa(PRESS_BAR, cPRESS_BAR, 3);
+    ftoa(TEMPERATURE, cTEMPERATURE, 1);
+
     if(H<10)
     {
         strcat(zeroH, cH);
@@ -154,7 +157,7 @@ void createTelemetryPacket()
                         //SP1_RELEASED,               /* <SP1_RELEASED> */
                         //SP2_RELEASED,               /* <SP2_RELEASED> */
                         cALTITUDE_BAR,              /* <ALTITUD> */
-                        //cTEMPERATURE,               /* <TEMP> */
+                        cTEMPERATURE,               /* <TEMP> */
                         /* <VOLTAGE> */
                         /* <GPS_TME> */
                         /* <GPS_LATITUDE> */
@@ -241,32 +244,32 @@ void getTime()
     }
 }
 
-char* getState(int state)
-{
-    switch(state)
-    {
-        case PRELAUNCH:
-            return "0";
-            break;
-        case LAUNCH:
-            return "1";
-            break;
-        case DEPLOYMENT:
-            return "2";
-            break;
-        case SP1_RELEASE:
-            return "3";
-            break;
-        case SP2_RELEASE:
-            return "4";
-            break;
-        case LANDING:
-            return "5";
-            break;
-    }
-}
+//char* getState(int state)
+//{
+//    switch(state)
+//    {
+//        case PRELAUNCH:
+//            return "0";
+//            break;
+//        case LAUNCH:
+//            return "1";
+//            break;
+//        case DEPLOYMENT:
+//            return "2";
+//            break;
+//        case SP1_RELEASE:
+//            return "3";
+//            break;
+//        case SP2_RELEASE:
+//            return "4";
+//            break;
+//        case LANDING:
+//            return "5";
+//            break;
+//    }
+//}
 
-float getAltitude(float P)
+float getAltitude(float P, float T)
 {
     return (Rair*(T+273.15)*log(P0/P))/ug;
 }

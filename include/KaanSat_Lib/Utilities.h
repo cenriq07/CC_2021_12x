@@ -47,11 +47,12 @@
 #define TEAM_NUMBER     "1714"
 
 #define spiREG_BMP      spiREG1
+#define spiREG_SD       spiREG4
+#define spiPORT_SD      spiPORT4
 
 #define P0              101325      //   Pa
 #define Rair            8.31432     //   N.m/(mol.K)
 #define ug              0.2841408   //   Producto u*g ; [u = 0.0289644 kg/mol]*[g = 9.81 m/s^2]
-#define T               25          //   °C ; TODO: Agregar sensor de temperatura
 
 #define PWM_PAYLOAD     pwm0
 #define PWM_CAMERA      pwm1
@@ -169,7 +170,7 @@ bool sciSendData(uint32 numOfDat, char* charDat, bool CR);
 
 void getTime();
 char* getState(int state);
-float getAltitude(float P);
+float getAltitude(float P, float T);
 
 static void reverse(char *s, size_t s_len);
 size_t sltoa(char *s, long int n);
