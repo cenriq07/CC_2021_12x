@@ -119,30 +119,26 @@ int main(void)
     {
         case '0':
             STATE = PRELAUNCH;
-            vTaskSuspend(xTelemetryHandle);
             break;
         case '1':
             STATE = LAUNCH;
-            telemetry_ON = true;
             break;
         case '2':
             STATE = DEPLOYMENT;
-            telemetry_ON = true;
             break;
         case '3':
             STATE = SP1_RELEASE;
-            telemetry_ON = true;
             break;
         case '4':
             STATE = SP2_RELEASE;
-            telemetry_ON = true;
             break;
         case '5':
             STATE = LANDING;
-            telemetry_ON = true;
             break;
     }
+    updateState(STATE);
 
+    vTaskSuspend(xTelemetryHandle);
     vTaskStartScheduler();
     while(1);
 
@@ -210,21 +206,25 @@ void vSensors(void *pvParameters)
     {
         /* ----------------| BMP280 |------------------- */
 
-        ComandoSPI[0]=((0x7F & 0xF4)<<8)|0x00AB;
-        spiSendAndGetData(spiREG_BMP, &SPI1_data_configCh2,(uint32) 1, ComandoSPI,DatoSPI01);
-        hacernada(500000);
-
-        ComandoSPI[0]=((0x7F & 0xF5)<<8)|0x0014;
-        spiSendAndGetData(spiREG_BMP, &SPI1_data_configCh2,(uint32) 1, ComandoSPI,DatoSPI01);
-        hacernada(100000);
-
-        CAlibracion_BMP280(spiREG_BMP,SPI1_data_configCh2);
-        LEERTempYpresRAW_bmp280(spiREG_BMP, SPI1_data_configCh2, 100, Pres_bmp280, Temp_bmp280,Alt_bmp280);
-
-        PRESS_BAR = Pres_bmp280[1];
-        TEMPERATURE = Temp_bmp280[1];
-
+//        ComandoSPI[0]=((0x7F & 0xF4)<<8)|0x00AB;
+//        spiSendAndGetData(spiREG_BMP, &SPI1_data_configCh2,(uint32) 1, ComandoSPI,DatoSPI01);
+//        hacernada(500000);
+//
+//        ComandoSPI[0]=((0x7F & 0xF5)<<8)|0x0014;
+//        spiSendAndGetData(spiREG_BMP, &SPI1_data_configCh2,(uint32) 1, ComandoSPI,DatoSPI01);
+//        hacernada(100000);
+//
+//        CAlibracion_BMP280(spiREG_BMP,SPI1_data_configCh2);
+//        LEERTempYpresRAW_bmp280(spiREG_BMP, SPI1_data_configCh2, 100, Pres_bmp280, Temp_bmp280,Alt_bmp280);
+//
+//        if(!SIM_ON)
+//            PRESS_BAR = Pres_bmp280[1];
+//
+//        TEMPERATURE = Temp_bmp280[1];
+        TEMPERATURE = 30.1;
         ALTITUDE_BAR = getAltitude(PRESS_BAR,TEMPERATURE);
+        memset(tramaAPI, 0, sizeof(tramaAPI));
+
         vTaskDelayUntil(&xSensorsTime, T_SENSORS);
     }
 }
@@ -235,44 +235,23 @@ void vMissionOperations(void *pvParameters)
     xOpsTime = xTaskGetTickCount();
 
     SERVO_PAYLOAD.period = 20000;
-    int angles[3] = {SPOS_ZERO, SPOS_SP1, SPOS_SP2};
-    SERVO_PAYLOAD.duty = angles[0];
+    SERVO_PAYLOAD.duty = SPOS_ZERO;
 
-    int i = 0;
-    uint8 land = 0;
-    float ALTITUDE_STATES[4] = {1798.0, 1750.0, 1700.0, 1660.0};
+    float ALTITUDE_STATES[5] = {45, 650, 500, 300, 50};
 
-    i = 0;
     while(1)
     {
-        switch(STATE)
+        if(LAND == false && (ALTITUDE_BAR >= ALTITUDE_STATES[STATE_INDEX]))
         {
-            case SP1_RELEASE:
-                SERVO_PAYLOAD.duty = angles[1];
-                break;
-            case SP2_RELEASE:
-                SERVO_PAYLOAD.duty = angles[2];
-                break;
-            default:
-                SERVO_PAYLOAD.duty = angles[0];
-                break;
+            STATE_INDEX++;
+            STATE = STATE_INDEX;
+            updateState(STATE);
         }
-        if(land == 0 && (ALTITUDE_BAR >= ALTITUDE_STATES[i]))
+        if(LAND == true && (ALTITUDE_BAR <= ALTITUDE_STATES[STATE_INDEX]))
         {
-            land = 1;
-            i++;
-            STATE = i+1;
-//            sdRemoveFile(STATE_FILENAME);
-//            sdCreateFile(STATE_FILENAME);
-//            sdWriteMemory(STATE_FILENAME, getState(STATE));
-        }
-        if(land == 1 && (ALTITUDE_BAR <= ALTITUDE_STATES[i]))
-        {
-            i++;
-            STATE = i+1;
-//            sdRemoveFile(STATE_FILENAME);
-//            sdCreateFile(STATE_FILENAME);
-//            sdWriteMemory(STATE_FILENAME, getState(STATE));
+            STATE_INDEX++;
+            STATE = STATE_INDEX;
+            updateState(STATE);
         }
         pwmSetSignal10e3(hetRAM1, PWM_PAYLOAD, SERVO_PAYLOAD);
         vTaskDelayUntil(&xOpsTime, T_OPERATIONS);

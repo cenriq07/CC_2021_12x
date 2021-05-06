@@ -36,9 +36,6 @@ char CMD_KEY[LONG_CMD_KEY] = {};
 
 /* ------------------- TELEMETRY -----------------------*/
                     /* CONTAINER */
-float MISSION_TIME = 0.0;
-char cMISSION_TIME[6];
-
 int PACKET_COUNT = 0;
 char cPACKET_COUNT[6] = "PC";
 
@@ -94,13 +91,17 @@ char SP2_ROTATION_RATE[LONG_SP_PARAM] = "X";
 /*---------------- COMMAND VARIABLES ----------------*/
 bool telemetry_ON = false;
 bool SP_ON = 0;
+bool SIM_ON = false;
 int ENABLE_SIM=0;
+int STATE_INDEX = 0;
+bool LAND = false;
 int H=0, M=0, S=0;
 char cH[3]="hhx", cM[3]="mmx", cS[3]="ssx";
 bool SP1X_ON = false;
 bool SP2X_ON = false;
 bool R1 = false;
 bool R2 = false;
+int sciControl = 0;
 /* ------------ TELEMETRY FORMAT -------------------*/
 //static const char* FORMAT = "1714,%s,C,%c,%c,%c,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s;1714,";
 static const char* FORMAT = "%s:%s:%s,%s,%s,%s,%s,%s,%s,%s,%s,%s;";
@@ -150,12 +151,12 @@ void createTelemetryPacket()
 
     buff_size = sprintf(command,
                         FORMAT,                     /* <TELEMETRY_FORMAT> */
-                        cH,cM,cS,/* <MISSION_TIME> */
+                        cH,cM,cS,                   /* <MISSION_TIME> */
                         cPACKET_COUNT,              /* <PACKET_COUNT> */
                         /* <PACKET_TYPE> */
-                        //MODE,                       /* <MODE> */
-                        //SP1_RELEASED,               /* <SP1_RELEASED> */
-                        //SP2_RELEASED,               /* <SP2_RELEASED> */
+//                        MODE,                       /* <MODE> */
+//                        SP1_RELEASED,               /* <SP1_RELEASED> */
+//                        SP2_RELEASED,               /* <SP2_RELEASED> */
                         cALTITUDE_BAR,              /* <ALTITUD> */
                         cTEMPERATURE,               /* <TEMP> */
                         /* <VOLTAGE> */
@@ -164,22 +165,22 @@ void createTelemetryPacket()
                         /* <GPS_LONGITUDE> */
                         /* <GPS_ALTITUDE> */
                         /* <GPS_SATS> */
-                        FSW_STATE[STATE],               /* <SOFTWARE_STATE> */
-                        //cSP1_PC,                        /* <SP1_PACKET_COUNT> */
-                        //cSP2_PC,                        /* <SP2_PACKET_COUNT> */
+                        FSW_STATE[STATE],           /* <SOFTWARE_STATE> */
+                        //cSP1_PC,                    /* <SP1_PACKET_COUNT> */
+                        //cSP2_PC,                    /* <SP2_PACKET_COUNT> */
                         /* <CMD_ECHO> */
-                        SP1_MISSION_TIME,               /* <MISSION_TIME> */
-                        SP1_PACKET_COUNT,               /* <PACKET_COUNT> */
-                        SP1_PACKET_TYPE,                /* <PACKET_TYPE> */
-                        SP1_ALTITUDE,                   /* <ALTITUD> */
-                        SP1_TEMPERATURE,                /* <TEMP> */
-                        SP1_ROTATION_RATE              /* <SP_ROTATION_RATE> */
-//                        SP2_MISSION_TIME,               /* <MISSION_TIME> */
-//                        SP2_PACKET_COUNT,               /* <PACKET_COUNT> */
-//                        SP2_PACKET_TYPE,                /* <PACKET_TYPE> */
-//                        SP2_ALTITUDE,                   /* <ALTITUD> */
-//                        SP2_TEMPERATURE,                /* <TEMP> */
-//                        SP2_ROTATION_RATE               /* <SP_ROTATION_RATE> */
+                        SP1_MISSION_TIME,           /* <MISSION_TIME> */
+                        SP1_PACKET_COUNT,           /* <PACKET_COUNT> */
+                        SP1_PACKET_TYPE,            /* <PACKET_TYPE> */
+                        SP1_ALTITUDE,               /* <ALTITUD> */
+                        SP1_TEMPERATURE,            /* <TEMP> */
+                        SP1_ROTATION_RATE           /* <SP_ROTATION_RATE> */
+//                        SP2_MISSION_TIME,           /* <MISSION_TIME> */
+//                        SP2_PACKET_COUNT,           /* <PACKET_COUNT> */
+//                        SP2_PACKET_TYPE,            /* <PACKET_TYPE> */
+//                        SP2_ALTITUDE,               /* <ALTITUD> */
+//                        SP2_TEMPERATURE,            /* <TEMP> */
+//                        SP2_ROTATION_RATE           /* <SP_ROTATION_RATE> */
                         );
 
     longAPI = (char*)buff_size + 0x0E;          /* LONGITUD DE LA TRAMA     0E ES CONSTANTE */
@@ -244,30 +245,43 @@ void getTime()
     }
 }
 
-//char* getState(int state)
-//{
-//    switch(state)
-//    {
-//        case PRELAUNCH:
-//            return "0";
-//            break;
-//        case LAUNCH:
-//            return "1";
-//            break;
-//        case DEPLOYMENT:
-//            return "2";
-//            break;
-//        case SP1_RELEASE:
-//            return "3";
-//            break;
-//        case SP2_RELEASE:
-//            return "4";
-//            break;
-//        case LANDING:
-//            return "5";
-//            break;
-//    }
-//}
+void updateState(int State)
+{
+    switch(State)
+    {
+        case PRELAUNCH:
+            telemetry_ON = false;
+            STATE_INDEX = 0;
+            LAND = false;
+            SERVO_PAYLOAD.duty = SPOS_ZERO;
+            break;
+        case LAUNCH:
+            telemetry_ON = true;
+            LAND = false;
+            SERVO_PAYLOAD.duty = SPOS_ZERO;
+            break;
+        case DEPLOYMENT:
+            telemetry_ON = true;
+            LAND = true;
+            SERVO_PAYLOAD.duty = SPOS_ZERO;
+            break;
+        case SP1_RELEASE:
+            telemetry_ON = true;
+            LAND = true;
+            SERVO_PAYLOAD.duty = SPOS_SP1;
+            break;
+        case SP2_RELEASE:
+            telemetry_ON = true;
+            LAND= true;
+            SERVO_PAYLOAD.duty = SPOS_SP2;
+            break;
+        case LANDING:
+            telemetry_ON = true;
+            LAND = true;
+            SERVO_PAYLOAD.duty = SPOS_SP2;
+            break;
+    }
+}
 
 float getAltitude(float P, float T)
 {

@@ -56,9 +56,9 @@
 
 #define PWM_PAYLOAD     pwm0
 #define PWM_CAMERA      pwm1
-#define SPOS_ZERO       250
-#define SPOS_SP1        505
-#define SPOS_SP2        750
+#define SPOS_ZERO       250         // 0°
+#define SPOS_SP1        505         // 45°
+#define SPOS_SP2        750         // 90°
 
 #define DH 0x0013A200
 #define DL_ET 0x40DB0B6E
@@ -71,12 +71,6 @@ enum STATES
 {
     PRELAUNCH, LAUNCH, DEPLOYMENT, SP1_RELEASE, SP2_RELEASE, LANDING
 };
-
-enum CANSAT
-{
-    CONTAINER, PAYLOAD
-};
-
 /*------------------ TASKS -------------------------*/
 
 void vWaitToStart(void *pvParameters);
@@ -98,9 +92,6 @@ extern char CMD_KEY[LONG_CMD_KEY];
 
 /* -------------- TELEMETRY ----------------*/
                 /* CONTAINER */
-
-extern float MISSION_TIME;
-extern char cMISSION_TIME[6];
 
 extern int PACKET_COUNT;
 extern char cPACKET_COUNT[6];
@@ -156,20 +147,24 @@ extern char SP2_ROTATION_RATE[LONG_SP_PARAM];
 /*---------------- COMMAND VARIABLES ----------------*/
 extern bool telemetry_ON;
 extern bool SP_ON;
+extern bool SIM_ON;
 extern int ENABLE_SIM;
+extern int STATE_INDEX;
+extern bool LAND;
 extern int H, M, S;
 extern char cH[3], cM[3], cS[3];
 extern bool SP1X_ON;
 extern bool SP2X_ON;
 extern bool R1;
 extern bool R2;
+extern int sciControl;
 /* ------------------ FUNCTIONS --------------------*/
 
 void createTelemetryPacket();
 bool sciSendData(uint32 numOfDat, char* charDat, bool CR);
 
 void getTime();
-char* getState(int state);
+void updateState(int State);
 float getAltitude(float P, float T);
 
 static void reverse(char *s, size_t s_len);

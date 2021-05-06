@@ -124,12 +124,12 @@ void sciInit(void)
 
     /** - set SCI pins pullup/pulldown enable */
     scilinREG->PIO7 = (uint32)((uint32)1U << 2U)  /* tx pin */
-                    | (uint32)((uint32)0U << 1U); /* rx pin */
+                    | (uint32)((uint32)1U << 1U); /* rx pin */
 
 
     /** - set SCI pins pullup/pulldown select */
     scilinREG->PIO8 = (uint32)((uint32)1U << 2U)  /* tx pin */
-                    | (uint32)((uint32)0U << 1U); /* rx pin */
+                    | (uint32)((uint32)1U << 1U); /* rx pin */
 
 
     /** - set interrupt level */
